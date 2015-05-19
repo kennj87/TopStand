@@ -1,0 +1,306 @@
+package stand.blockynights;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Iterator;
+import java.util.List;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
+import org.bukkit.event.Listener;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.util.EulerAngle;
+
+public class main extends JavaPlugin implements Listener {
+	
+	   static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";  
+	   static final String DB_URL = "jdbc:mysql://localhost/zperm";
+	   static final String USER = "root";
+	   static final String PASS = "pass";
+
+		@Override
+		public void onEnable() {
+			Bukkit.getPluginManager().registerEvents(this, this);
+			this.saveDefaultConfig();
+			BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
+	        scheduler.scheduleSyncRepeatingTask(this, new Runnable() {
+	            @Override
+	            public void run() {
+	            	String run = getConfig().getString("run");
+	            	if (run.equals("on")) {
+	            	killthem();
+	            	gettop();	            	
+	            	}
+	            }
+	        }, 120L, 12000L);
+		}
+
+		@Override
+		public void onDisable() {
+		}
+		
+		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+		Player p = (Player) sender;
+		if (p.isOp()) {
+		if (args[0].equals("1") || (args[0].equals("2")) || (args[0].equals("3"))) {
+			Double x = p.getLocation().getX();
+			Double y = p.getLocation().getY();
+			Double z = p.getLocation().getZ();
+			String world = p.getLocation().getWorld().getName();
+			this.getConfig().set(args[0]+".x", x);
+			this.getConfig().set(args[0]+".y", y);
+			this.getConfig().set(args[0]+".z", z);
+			this.getConfig().set(args[0]+".world", world);
+			this.saveConfig();
+			return true;
+		}
+		if (args[0].equals("top")) {
+		gettop();	
+		}
+		if (args[0].equals("stop")) {
+			this.getConfig().set("run", "off");
+			this.saveConfig();
+		}
+		if (args[0].equals("start")) {
+			this.getConfig().set("run","on");
+			this.saveConfig();
+		}
+		}
+		return true;
+	}
+		
+		
+		private void gettop() { 
+           	killthem();
+			Connection conn = null;
+			Statement stmt = null;
+			   try{
+				      Class.forName("com.mysql.jdbc.Driver");
+				      conn = DriverManager.getConnection(DB_URL,USER,PASS);
+				      stmt = conn.createStatement();
+				      String sql;
+				      sql = "SELECT name FROM fe_accounts ORDER BY money DESC limit 3";
+				      ResultSet rs = stmt.executeQuery(sql);
+				      int i = 1;
+				      while (rs.next()) {
+				    	String name = rs.getString("name");
+				    	Spawning(name,i);  
+				    	  i++;
+				      }
+				      rs.close();stmt.close();conn.close();
+			   }catch(SQLException se){se.printStackTrace();}catch(Exception e){e.printStackTrace();}
+		   		finally{try{if(stmt!=null)stmt.close();}catch(SQLException se2){}try{if(conn!=null)conn.close();}catch(SQLException se){se.printStackTrace();}}
+		}
+		
+		private void Spawning(String name,int number) {
+			if (number == 1) {
+			World newworld1 = Bukkit.getServer().getWorld(this.getConfig().getString("1.world"));
+			Double dx1 = this.getConfig().getDouble("1.x");
+			Double dy1 = this.getConfig().getDouble("1.y");
+			Double dz1 = this.getConfig().getDouble("1.z");
+			Location loc1 = new Location(newworld1, dx1, dy1, dz1);
+			SpawnStand1(loc1, name);
+			}
+			if (number == 2) {
+			World newworld2 = Bukkit.getServer().getWorld(this.getConfig().getString("2.world"));
+			Double dx2 = this.getConfig().getDouble("2.x");
+			Double dy2 = this.getConfig().getDouble("2.y");
+			Double dz2 = this.getConfig().getDouble("2.z");
+			Location loc2 = new Location(newworld2, dx2, dy2, dz2);
+			SpawnStand2(loc2, name);
+			}
+			if (number == 3) {
+			World newworld3 = Bukkit.getServer().getWorld(this.getConfig().getString("3.world"));
+			Double dx3 = this.getConfig().getDouble("3.x");
+			Double dy3 = this.getConfig().getDouble("3.y");
+			Double dz3 = this.getConfig().getDouble("3.z");
+			Location loc3 = new Location(newworld3, dx3, dy3, dz3);
+			SpawnStand3(loc3, name);
+			}
+		}
+		
+		private void killthem() {
+			World world = Bukkit.getServer().getWorld(this.getConfig().getString("1.world"));
+			List<Entity> list = world.getEntities();
+	    	for (Iterator<Entity> entities = list.iterator();entities.hasNext();){
+	    		if (entities.hasNext()){
+		    		Entity entity = entities.next();
+		    		if (entity instanceof ArmorStand){
+		    			Entity enty = (Entity) entity;
+				    		Location loce = entity.getLocation();
+							Double dx1 = this.getConfig().getDouble("1.x");
+							Double dy1 = this.getConfig().getDouble("1.y");
+							Double dz1 = this.getConfig().getDouble("1.z");
+							Location loc = new Location(world, dx1, dy1, dz1);
+				    		boolean xch = false;
+							boolean ych = false;
+							boolean zch = false;
+							int x = (int) loc.getX() + 2;
+							int y = (int) loc.getY() + 2;
+							int z = (int) loc.getZ() + 2;
+							int xn = (int) loc.getX() - 2;
+							int yn = (int) loc.getY() - 2;
+							int zn = (int) loc.getZ() - 2;
+							int ex = (int) loce.getX();
+							int ey = (int) loce.getY();
+							int ez = (int) loce.getZ();
+							while (xn<=x){
+								if (ex == xn){
+									xch = true;
+									break;
+								}else{
+								xn++;
+								}
+							}
+							while (yn<=y){
+								if (ey == yn){
+									ych = true;
+									break;
+								}else{
+								yn++;
+								}
+							}
+							while (zn<=z){
+								if (ez == zn){
+									zch = true;
+									break;
+								}else{
+								zn++;
+								}
+							}
+							if (xch&&ych&&zch){
+								enty.remove();
+		    			}
+		    		}
+		    	}
+	    	}
+		}
+		
+		private ArmorStand SpawnStand1(Location l,String name)
+		{
+			ItemStack helmet = new ItemStack(Material.SKULL_ITEM);
+			helmet.setDurability((short) 3);
+			SkullMeta meta = (SkullMeta)helmet.getItemMeta();
+			meta.setOwner(name);
+			helmet.setItemMeta(meta);
+			ItemStack chest = new ItemStack(Material.DIAMOND_CHESTPLATE, 0);
+			ItemStack pants = new ItemStack(Material.DIAMOND_LEGGINGS, 0);
+			ItemStack boots = new ItemStack(Material.DIAMOND_BOOTS, 0);
+			ArmorStand as = (ArmorStand)l.getWorld().spawnEntity(l, EntityType.ARMOR_STAND);
+			double x = 50;
+			double y = 600;
+			EulerAngle head = as.getHeadPose().setX(x).setY(y);
+			EulerAngle body = as.getHeadPose().setY(y);
+			EulerAngle rightleg = as.getRightLegPose().setY(y);
+			EulerAngle leftarm = as.getLeftArmPose().setY(30);
+			EulerAngle rightarm = as.getLeftArmPose().setY(122).setZ(-10);
+			as.setHeadPose(head);
+			as.setBodyPose(body);
+			as.setRightLegPose(rightleg);
+			as.setLeftArmPose(leftarm);
+			as.setRightArmPose(rightarm);
+			as.setCustomNameVisible(true);
+			as.setCustomName(name);
+			as.setHelmet(helmet);
+			as.setChestplate(chest);
+		    as.setLeggings(pants);
+		    as.setBoots(boots);
+		    as.setVisible(Config.isVisible);
+		    as.setSmall(Config.isSmall);
+		    as.setArms(Config.hasArms);
+		    as.setBasePlate(Config.hasBasePlate);
+		    as.setGravity(Config.hasGravity);
+		    return as;
+		  }
+		private ArmorStand SpawnStand2(Location l,String name)
+		{
+			ItemStack helmet = new ItemStack(Material.SKULL_ITEM);
+			helmet.setDurability((short) 3);
+			SkullMeta meta = (SkullMeta)helmet.getItemMeta();
+			meta.setOwner(name);
+			helmet.setItemMeta(meta);
+			ItemStack chest = new ItemStack(Material.GOLD_CHESTPLATE, 0);
+			ItemStack pants = new ItemStack(Material.GOLD_LEGGINGS, 0);
+			ItemStack boots = new ItemStack(Material.GOLD_BOOTS, 0);
+			ArmorStand as = (ArmorStand)l.getWorld().spawnEntity(l, EntityType.ARMOR_STAND);
+			double y = 600;
+			EulerAngle head = as.getHeadPose().setY(y);
+			EulerAngle body = as.getHeadPose().setY(y);
+			EulerAngle rightleg = as.getRightLegPose().setY(y);
+			EulerAngle leftarm = as.getLeftArmPose().setY(30);
+			EulerAngle rightarm = as.getLeftArmPose().setY(1.3);
+			as.setHeadPose(head);
+			as.setBodyPose(body);
+			as.setRightLegPose(rightleg);
+			as.setLeftArmPose(leftarm);
+			as.setRightArmPose(rightarm);
+			as.setHelmet(helmet);
+			as.setChestplate(chest);
+		    as.setLeggings(pants);
+		    as.setBoots(boots);
+		    as.setVisible(Config.isVisible);
+		    as.setSmall(Config.isSmall);
+		    as.setArms(Config.hasArms);
+		    as.setBasePlate(Config.hasBasePlate);
+		    as.setGravity(Config.hasGravity);
+			as.setCustomNameVisible(true);
+		    as.setCustomName(name);
+		    return as;
+		  }
+		private ArmorStand SpawnStand3(Location l,String name)
+		{
+			ItemStack helmet = new ItemStack(Material.SKULL_ITEM);
+			helmet.setDurability((short) 3);
+			SkullMeta meta = (SkullMeta)helmet.getItemMeta();
+			meta.setOwner(name);
+			helmet.setItemMeta(meta);
+			ItemStack chest = new ItemStack(Material.IRON_CHESTPLATE, 0);
+			ItemStack pants = new ItemStack(Material.IRON_LEGGINGS, 0);
+			ItemStack boots = new ItemStack(Material.IRON_BOOTS, 0);
+			ArmorStand as = (ArmorStand)l.getWorld().spawnEntity(l, EntityType.ARMOR_STAND);
+			double y = 600;
+			EulerAngle head = as.getHeadPose().setY(y);
+			EulerAngle body = as.getHeadPose().setY(y);
+			EulerAngle rightleg = as.getRightLegPose().setY(y);
+			EulerAngle leftarm = as.getLeftArmPose().setY(30);
+			EulerAngle rightarm = as.getLeftArmPose().setY(1.3);
+			as.setHeadPose(head);
+			as.setBodyPose(body);
+			as.setRightLegPose(rightleg);
+			as.setLeftArmPose(leftarm);
+			as.setRightArmPose(rightarm);
+			as.setHelmet(helmet);
+			as.setChestplate(chest);
+		    as.setLeggings(pants);
+		    as.setBoots(boots);
+		    as.setVisible(Config.isVisible);
+		    as.setSmall(Config.isSmall);
+		    as.setArms(Config.hasArms);
+		    as.setBasePlate(Config.hasBasePlate);
+		    as.setGravity(Config.hasGravity);
+			as.setCustomNameVisible(true);
+		    as.setCustomName(name);
+		    return as;
+		  }
+		
+		class Config
+		{
+		  public static final boolean isVisible = true;
+		  public static final boolean isSmall = false;
+		  public static final boolean hasArms = true;
+		  public static final boolean hasBasePlate = false;
+		  public static final boolean hasGravity = true;
+		}
+}
